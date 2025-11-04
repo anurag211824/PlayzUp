@@ -1,7 +1,17 @@
+
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+import { upload } from "./middlewares/multer.js";
+import { uploadOnCloudinary } from "./utils/cloudinary.js";
 const app = express();
+console.log("Environment Check:", {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 
 
@@ -60,6 +70,76 @@ app.use(cookieParser());
 // ✅ In short:
 // It helps you access cookies (useful for authentication, sessions, etc.).
 
+//Video/File upload route with inline controller
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ ok: false, message: "No file provided" });
+    }
 
+    // uploadOnCloudinary expects the file path as argument
+    console.log(req.file.path);
+    
+    const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+    console.log(cloudinaryResponse);
+    
+    if (!cloudinaryResponse) {
+      return res.status(500).json({ ok: false, message: "Upload to Cloudinary failed" });
+    }
+
+    return res.json({
+      ok: true,
+      message: "File uploaded successfully",
+      data: {
+        url: cloudinaryResponse.secure_url || cloudinaryResponse.url,
+        resource_type: cloudinaryResponse.resource_type,
+        public_id: cloudinaryResponse.public_id,
+        original_filename: cloudinaryResponse.original_filename,
+      },
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    return res.status(500).json({ 
+      ok: false, 
+      message: "Upload failed", 
+      error: error.message 
+    });
+  }
+});
+
+
+
+// this is ok the file is getting saved in public/temp but the above one is not working it involes cloudinary
+
+// app.post("/api/upload", upload.single("file"), async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ ok: false, message: "No file provided" });
+//     }
+
+//     // Just log the saved file path
+//     console.log("✅ File saved at:", req.file.path);
+//     console.log("📁 Full file details:", req.file);
+
+//     // Return success WITHOUT uploading to Cloudinary
+//     return res.json({
+//       ok: true,
+//       message: "File saved successfully",
+//       data: {
+//         filename: req.file.filename,
+//         path: req.file.path,
+//         size: req.file.size,
+//         mimetype: req.file.mimetype,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Upload error:", error);
+//     return res.status(500).json({ 
+//       ok: false, 
+//       message: "Upload failed", 
+//       error: error.message 
+//     });
+//   }
+// });
 
 export { app };
