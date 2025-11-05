@@ -142,4 +142,13 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 //   }
 // });
 
+
+// routes import
+import userRouter from "./routes/user.js"
+
+
+//routes declaration
+app.use('/api/v1/users',userRouter)
+
+
 export { app };
