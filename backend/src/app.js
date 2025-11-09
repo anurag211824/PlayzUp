@@ -15,7 +15,13 @@ console.log("Environment Check:", {
 
 
 
-app.use(cors({origin: process.env.CORS_ORIGIN,credentials: true,}));
+// app.use(cors({origin: process.env.CORS_ORIGIN,credentials: true,}));
+app.use(cors({
+    origin: "*",
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 // Purpose: Enables CORS (Cross-Origin Resource Sharing).
 // By default, browsers block requests that come from different origins (like frontend http://localhost:3000 calling backend http://localhost:5000).
 // CORS allows your backend to accept requests from specific domains.
